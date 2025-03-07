@@ -1,9 +1,11 @@
 import streamlit as st
 import requests
+import pandas as pd
 
 API_KEY = "AIzaSyBuskvy0h2pfBTyMsqmsb659duKYq2sCP8"  # Use your own API key
 
 st.title("Google Custom Search Engine")
+st.write("**Number of search results** (Remember: Google CSE has a limit of 1000 results per day)")
 
 # Ask user for CSE ID
 cse_id = st.text_input("Enter your CSE ID", "")
@@ -22,11 +24,19 @@ if st.button("Search"):
 
             if "items" in data:
                 for item in data["items"]:
-                    results.append((item["title"], item["link"]))
+                    results.append({"Title": item["title"], "Link": item["link"]})
             else:
                 st.error("No results found or API limit reached.")
                 break
 
-        # Display results
-        for title, link in results:
-            st.markdown(f"### [{title}]({link})")
+        # Convert results to DataFrame and save as HTML
+        if results:
+            df = pd.DataFrame(results)
+            html_table = df.to_html(index=False, escape=False)
+            with open("search_results.html", "w", encoding="utf-8") as f:
+                f.write(html_table)
+            
+            # Display results as a table
+            st.write("### Search Results:")
+            st.dataframe(df)
+            st.markdown("[Download Search Results](search_results.html)", unsafe_allow_html=True)
